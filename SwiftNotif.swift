@@ -9,9 +9,21 @@
 import Foundation
 
 public class SwiftNotif {
+    
     private static var allNotifs: [String: (([String: Any]) -> Void)] = [:]
     
     private static var pendingNotifs: [[String: Any?]] = []
+    
+    /**
+     Checks if a notification is observed or not.
+     
+     - Parameters:
+     - key: The unique key for the notification.
+     
+     */
+    public static func isObserved(key: String) -> Bool {
+        return allNotifs[key] != nil
+    }
     
     /**
      Observes for a notification and runs the neccessary code when the notification is posted.
@@ -36,7 +48,7 @@ public class SwiftNotif {
     }
     
     /**
-     Stops listening for a specified notification.
+     Stops listening for a specified notification. To continue receiving notifications from the specified notification, it must be observed again.
      
      - Parameters:
      - key: The unique key for the notification to be unobserved.
@@ -58,6 +70,21 @@ public class SwiftNotif {
     public static func unobserveAllNotifications() {
         allNotifs = [:]
         pendingNotifs = []
+    }
+    
+    /**
+     Triggers a notification. If the notification is not yet observed, it will wait to be triggered as soon as it is observed. To pass context and add a completion block, use the other method `trigger(key:context:completion:)`
+     
+     - Parameters:
+     - key: The unique key for the notification to be triggered.
+     
+     */
+    public static func trigger(key: String) {
+        guard let code = allNotifs[key] else {
+            pendingNotifs.append(["key": key])
+            return
+        }
+        code([:])
     }
     
     /**
